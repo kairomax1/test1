@@ -1,90 +1,120 @@
-# v2rayNG
+# Mobix VPN — موبیکس وی‌پی‌ان
 
-A V2Ray client for Android, support [Xray core](https://github.com/XTLS/Xray-core) and [v2fly core](https://github.com/v2fly/v2ray-core)
+<div align="center">
+  <img src="branding/mobix-logo.png" width="140" alt="Mobix VPN logo" />
 
-[![API](https://img.shields.io/badge/API-24%2B-yellow.svg?style=flat)](https://developer.android.com/about/versions/lollipop)
-[![Kotlin Version](https://img.shields.io/badge/Kotlin-2.4.0-blue.svg)](https://kotlinlang.org)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/2dust/v2rayNG)](https://github.com/2dust/v2rayNG/commits/master)
-[![CodeFactor](https://www.codefactor.io/repository/github/2dust/v2rayng/badge)](https://www.codefactor.io/repository/github/2dust/v2rayng)
-[![GitHub Releases](https://img.shields.io/github/downloads/2dust/v2rayNG/latest/total?logo=github)](https://github.com/2dust/v2rayNG/releases)
-[![Chat on Telegram](https://img.shields.io/badge/Chat%20on-Telegram-brightgreen.svg)](https://t.me/v2rayn)
+  **اتصال امن، سریع و پایدار — روی همه‌ی اپراتورها و همه‌ی گوشی‌ها**
+</div>
 
 ---
 
-## Download / 下载
+## فارسی
 
-Download the latest release here:
+### موبیکس چیست؟
 
-在这里下载最新版本：
+**Mobix VPN** یک کلاینت VPN کامل برای اندروید است که موتور اتصال آن هسته‌ی
+[Xray](https://github.com/XTLS/Xray-core) است. یعنی همه‌ی پروتکل‌های پرکاربرد و
+ضد‌فیلتر را پشتیبانی می‌کند و با هر اپراتور و هر شبکه‌ای (همراه اول، ایرانسل،
+رایتل، وای‌فای خانگی و …) کار می‌کند.
 
-[https://github.com/2dust/v2rayNG/releases](https://github.com/2dust/v2rayNG/releases)
+| ویژگی | توضیح |
+| --- | --- |
+| پروتکل‌ها | VLESS، VMess، Trojan، Shadowsocks، SOCKS، HTTP، WireGuard، Hysteria2، و کانفیگ سفارشی |
+| هسته‌ی اتصال | Xray core (به‌همراه پشتیبانی از v2fly) |
+| حالت اتصال | VpnService (بدون روت، همه‌ی اپ‌ها) + حالت پروکسی + tun2socks (hev-socks5-tunnel) |
+| پینگ و تست | تست واقعی (Real ping)، تست سرعت همه‌ی سرورها به‌صورت گروهی |
+| اشتراک | لینک ساب، بروزرسانی خودکار، نمایش حجم مصرفی |
+| امنیت | پشتیبانی TLS/REALITY، پین گواهی، مسیریابی هوشمند (ایران/جهانی) |
+| طراحی | رابط Compose و Material 3، تم روشن/تاریک، رنگ اختصاصی برند |
+| سازگاری | اندروید ۷ به بالا (API 24+) و ABIهای `arm64-v8a`، `armeabi-v7a`، `x86_64`، `x86` + APK یونیورسال |
 
-> [!TIP]
-> v2rayNG is the mobile version. For the desktop version, please visit the v2rayN \
-> v2rayNG 是手机版，电脑版请访问 v2rayN
->
-> https://github.com/2dust/v2rayN
+### نصب
 
----
+۱. از تب **Actions** در همین مخزن، آخرین بیلد موفق `Build Mobix VPN APK` را باز کنید.
+۲. فایل `MobixVPN-apk` را دانلود کنید.
+۳. APK مناسب گوشی‌تان را نصب کنید:
 
-### Geoip and Geosite
+| فایل | مناسب برای |
+| --- | --- |
+| `MobixVPN_*_arm64-v8a.apk` | تقریباً همه‌ی گوشی‌های امروزی (پیشنهادی) |
+| `MobixVPN_*_armeabi-v7a.apk` | گوشی‌های قدیمی ۳۲ بیتی |
+| `MobixVPN_*_x86_64.apk` / `x86` | شبیه‌سازها و تبلت‌های اینتل |
+| `MobixVPN_*_universal.apk` | یک فایل برای همه‌ی دستگاه‌ها |
 
-- geoip.dat and geosite.dat files are in `Android/data/com.v2ray.ang/files/assets` (path may differ on some Android device)
-- download feature will get enhanced version in this [repo](https://github.com/Loyalsoldier/v2ray-rules-dat) (note: it needs a working proxy)
-- latest official [domain list](https://github.com/Loyalsoldier/v2ray-rules-dat) and [ip list](https://github.com/Loyalsoldier/geoip) can be imported manually
-- possible to use a third-party dat file in the same folder, like [h2y](https://guide.v2fly.org/routing/sitedata.html#%E5%A4%96%E7%BD%AE%E7%9A%84%E5%9F%9F%E5%90%8D%E6%96%87%E4%BB%B6)
+> اگر مطمئن نیستید کدام نسخه را بگیرید، همان `universal` را نصب کنید.
 
-More in our [wiki](https://github.com/2dust/v2rayNG/wiki)
+### ساخت نسخه‌ی ریلیز (نسخه‌ی قابل دانلود در Releases)
 
-### Geoip 与 Geosite
+از تب **Actions** → `Build Mobix VPN APK` → **Run workflow** و در فیلد
+`release_tag` عددی مثل `v1.0.0` وارد کنید. APKها به‌طور خودکار به بخش
+**Releases** اضافه می‌شوند تا لینک دانلود دائمی داشته باشند.
 
-- geoip.dat 和 geosite.dat 文件位于 `Android/data/com.v2ray.ang/files/assets`（部分设备路径可能不同）
-- 下载功能将获取该 [仓库](https://github.com/Loyalsoldier/v2ray-rules-dat) 中的增强版本（注意：此功能需要一个可用的代理）
-- 最新官方 [域名列表](https://github.com/Loyalsoldier/v2ray-rules-dat) 和 [IP 列表](https://github.com/Loyalsoldier/geoip) 可手动导入
-- 也可在同一文件夹中使用第三方 dat 文件，例如 [h2y](https://guide.v2fly.org/routing/sitedata.html#%E5%A4%96%E7%BD%AE%E7%9A%84%E5%9F%9F%E5%90%8D%E6%96%87%E4%BB%B6)
+### حریم خصوصی
 
-更多内容请见我们的 [wiki](https://github.com/2dust/v2rayNG/wiki)
+برنامه هیچ داده‌ای را به سرور شخص ثالث نمی‌فرستد؛ همه‌ی کانفیگ‌ها، ساب‌ها و
+تنظیمات فقط روی خود گوشی ذخیره می‌شوند.
 
----
+### لوگو و هویت بصری
 
-## Development guide / 开发指南
+فایل‌های برند در پوشه‌ی [`branding/`](branding) قرار دارند:
 
-### Note
+- `mobix-logo.png` — لوگوی اصلی (۱۰۲۴×۱۰۲۴)
+- `mobix-logo.svg` — نسخه‌ی وکتور برای چاپ و وب
+- `mobix-playstore-512.png` — آیکون ۵۱۲×۵۱۲ برای استور
+- `mobix-feature-graphic.png` — تصویر ۱۰۲۴×۵۰۰ برای استور
+- `render_brand.py` — اسکریپت بازسازی همه‌ی آیکون‌های اندروید از لوگو
 
-- Android project under the V2rayNG folder can be compiled directly in Android Studio, or using the Gradle wrapper. But the v2ray core inside the aar is (probably) outdated.
-- The aar can be compiled from the Golang project [AndroidLibV2rayLite](https://github.com/2dust/AndroidLibV2rayLite) or [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite). For a quick start, read the guides for [Go Mobile](https://github.com/golang/go/wiki/Mobile) and [Makefiles for Go Developers](https://tutorialedge.net/golang/makefiles-for-go-developers/).
-- v2rayNG can run on Android Emulators. For WSA, VPN permission needs to be granted via `appops set [package name] ACTIVATE_VPN allow`.
+برای بازسازی آیکون‌ها:
 
-### 提示
-
-- V2rayNG 文件夹下的 Android 项目可直接在 Android Studio 中编译，或使用 Gradle wrapper 编译。但 aar 内置的 v2ray core（可能）已过时。
-- aar 可由 Golang 项目 [AndroidLibV2rayLite](https://github.com/2dust/AndroidLibV2rayLite) 或 [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite) 编译而成。快速入门可参考 [Go Mobile](https://github.com/golang/go/wiki/Mobile) 指南和 [Makefiles for Go Developers](https://tutorialedge.net/golang/makefiles-for-go-developers/)。
-- v2rayNG 可在 Android 模拟器上运行。对于 WSA，需要通过 `appops set [package name] ACTIVATE_VPN allow` 授予 VPN 权限。
-
----
-
-
-## GPG Verification / GPG 签名校验
-
-Release files are signed with GPG to verify authenticity and integrity, helping prevent mirror, ISP, or CDN hijacking.
-
-发布文件已使用 GPG 签名，可用于校验文件真实性与完整性，预防镜像站、运营商或 CDN 劫持。
-
-### Fingerprint / 公钥指纹
-
-```text
-7694 5E9F 3E9A 168F 8070 F195 805D 661C
-134D FAF6 8903 C199 463C 31E5 AE90 3AE0
+```bash
+pip install pillow
+python3 branding/render_brand.py
 ```
 
 ---
 
-## Community / 社区
+## English
 
-Telegram Group / Telegram 群组：
+**Mobix VPN** is an Android VPN client powered by the [Xray](https://github.com/XTLS/Xray-core)
+core, with a custom Material 3 interface and a dedicated brand identity
+(shield + bolt mark, violet → cyan gradient).
 
-[https://t.me/v2rayN](https://t.me/v2rayN)
+### Highlights
 
-Telegram Channel / Telegram 频道：
+- Protocols: VLESS, VMess, Trojan, Shadowsocks, SOCKS, HTTP, WireGuard, Hysteria2, custom configs
+- Connection modes: VpnService (no root), proxy-only, and tun2socks via hev-socks5-tunnel
+- Subscriptions with auto-update and usage info, real-ping and batch speed tests
+- Smart routing profiles (Iran / global / whitelist / blacklist), TLS pinning, REALITY support
+- Works on Android 7.0+ (API 24) across `arm64-v8a`, `armeabi-v7a`, `x86_64` and `x86`
 
-[https://t.me/github_2dust](https://t.me/github_2dust)
+### Getting the APK
+
+1. Open the **Actions** tab and pick the latest successful `Build Mobix VPN APK` run.
+2. Download the `MobixVPN-apk` artifact.
+3. Install the APK that matches your device (see the table above; `universal` always works).
+
+To produce a permanent download link, run the workflow with a `release_tag`
+(e.g. `v1.0.0`) — the APKs are then attached to **Releases**.
+
+### Building locally
+
+```bash
+git submodule update --init --recursive
+# LLVM NDK 30.x is required for the hev-socks5-tunnel native libraries
+bash compile-hevtun.sh
+cp -r libs/* V2rayNG/app/libs/
+# put libv2ray.aar from 2dust/AndroidLibXrayLite into V2rayNG/app/libs/
+cd V2rayNG && ./gradlew assemblePlaystoreRelease
+```
+
+The same steps, fully automated, live in [`.github/workflows/build.yml`](.github/workflows/build.yml).
+
+---
+
+## Credits & License
+
+Mobix VPN is based on the open-source work of
+[v2rayNG](https://github.com/2dust/v2rayNG) by 2dust and the Xray team, and is
+distributed under the **GNU General Public License v3.0** — see [LICENSE](LICENSE).
+All third-party libraries and their licenses are listed inside the app
+(*Settings → About → Open source licenses*).

@@ -1,57 +1,201 @@
-name: Build APK
+name: Build Mobix VPN APK
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "If set (e.g. v1.0.0), the APKs are published as a GitHub Release"
+        required: false
+        type: string
   push:
-    branches: [ master, main ]
+    branches:
+      - master
+      - main
+      - "arena/**"
+
+permissions:
+  contents: write
+
+env:
+  ANDROID_NDK_VERSION: "30.0.16248370"
 
 jobs:
   build:
+    name: Build APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout AndroidLibXrayLite (core version source)
+        run: git submodule update --init --recursive AndroidLibXrayLite
+
+      - name: Checkout hev-socks5-tunnel (tun2socks source)
+        run: git submodule update --init --recursive hev-socks5-tunnel
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
+          cmdline-tools-version: '14742923'
+          packages: "platforms;android-37.0 build-tools;37.0.0 platform-tools"
+
+      - name: Accept licenses and install NDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --channel=0 --install "ndk;${ANDROID_NDK_VERSION}"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Inject NDK version into the Gradle build
+        run: |
+          if ! grep -q "ndkVersion" V2rayNG/app/build.gradle.kts; then
+            sed -i "s|    compileSdk = 37|    compileSdk = 37\n    ndkVersion = \"${ANDROID_NDK_VERSION}\"|" V2rayNG/app/build.gradle.kts
+          fi
+          grep -n "ndkVersion" V2rayNG/app/build.gradle.kts
+
+      - name: Restore cached tun2socks libraries
+        id: cache-libhevtun
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/libs
+          key: libhevtun-${{ runner.os }}-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('.git/modules/hev-socks5-tunnel/HEAD') }}-${{ hashFiles('compile-hevtun.sh') }}
+
+      - name: Build tun2socks libraries (hev-socks5-tunnel)
+        if: steps.cache-libhevtun.outputs.cache-hit != 'true'
+        run: bash compile-hevtun.sh
+
+      - name: Cache tun2socks libraries
+        if: steps.cache-libhevtun.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/libs
+          key: libhevtun-${{ runner.os }}-${{ env.ANDROID_NDK_VERSION }}-${{ hashFiles('.git/modules/hev-socks5-tunnel/HEAD') }}-${{ hashFiles('compile-hevtun.sh') }}
+
+      - name: Copy native libraries into the app module
+        run: |
+          mkdir -p V2rayNG/app/libs
+          cp -r libs/* V2rayNG/app/libs/
+
+      - name: Resolve Xray core version
+        run: |
+          cd AndroidLibXrayLite
+          git fetch --tags --force --depth 1 origin "+refs/tags/*:refs/tags/*" || true
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -z "$TAG" ]; then
+            TAG=$(curl -fsSL https://api.github.com/repos/2dust/AndroidLibXrayLite/releases/latest | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')
+          fi
+          echo "Using AndroidLibXrayLite $TAG"
+          echo "CORE_TAG=$TAG" >> "$GITHUB_ENV"
+          echo "CORE_VERSION=$TAG" >> "$GITHUB_ENV"
+
+      - name: Download libv2ray.aar (Xray core engine)
+        run: |
+          mkdir -p V2rayNG/app/libs
+          curl -fL --retry 3 \
+            -o V2rayNG/app/libs/libv2ray.aar \
+            "https://github.com/2dust/AndroidLibXrayLite/releases/download/${CORE_TAG}/libv2ray.aar"
+          ls -lh V2rayNG/app/libs/
+
+      - name: Create signing key
+        run: |
+          if [ -n "${{ secrets.APP_KEYSTORE_BASE64 }}" ]; then
+            printf '%s' "${{ secrets.APP_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/mobix.jks"
+            echo "Using repository signing key"
+          else
+            keytool -genkeypair -v \
+              -keystore "$RUNNER_TEMP/mobix.jks" \
+              -alias mobix \
+              -keyalg RSA -keysize 2048 -validity 10950 \
+              -storepass mobixvpn -keypass mobixvpn \
+              -dname "CN=Mobix VPN, OU=Mobile, O=Mobix, L=Tehran, C=IR"
+            echo "Generated a development signing key (set APP_KEYSTORE_BASE64 to reuse a stable key)"
+          fi
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/mobix.jks" >> "$GITHUB_ENV"
+
+      - name: Build release APKs
+        env:
+          STORE_PASSWORD: ${{ secrets.APP_KEYSTORE_PASSWORD || 'mobixvpn' }}
+          KEY_ALIAS: ${{ secrets.APP_KEYSTORE_ALIAS || 'mobix' }}
+          KEY_PASSWORD: ${{ secrets.APP_KEY_PASSWORD || 'mobixvpn' }}
+        run: |
+          cd V2rayNG
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          chmod +x gradlew
+          ./gradlew --no-daemon assemblePlaystoreRelease \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
+            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+
+      - name: Show outputs
+        run: find V2rayNG/app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: MobixVPN-apk
+          path: V2rayNG/app/build/outputs/apk/playstore/release/*.apk
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Download APKs
+        uses: actions/download-artifact@v4
         with:
-          distribution: temurin
-          java-version: '17'
+          name: MobixVPN-apk
+          path: apk
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: List downloaded APKs
+        run: ls -lh apk
 
-      - name: Make my own signing key
-        run: |
-          keytool -genkeypair -v -keystore keystore.jks -alias myalias -keyalg RSA -keysize 2048 -validity 10950 -storepass 123456 -keypass 123456 -dname "CN=Test1 App, OU=Personal, O=Personal, L=Tehran, ST=Tehran, C=IR"
-          echo "ENCODED_KEYSTORE=$(base64 -w0 keystore.jks)" >> "$GITHUB_ENV"
-
-      - name: Build release APK
+      - name: Resolve release tag
+        id: release
         env:
-          encodedString: ${{ env.ENCODED_KEYSTORE }}
-          storePassword: 123456
-          keyAlias: myalias
-          keyPassword: 123456
+          INPUT_TAG: ${{ inputs.release_tag }}
         run: |
-          chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
+          VERSION_NAME=$(grep -oP 'versionName = "\K[^"]+' V2rayNG/app/build.gradle.kts | head -1)
+          TAG="${INPUT_TAG:-v${VERSION_NAME}}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Publishing Mobix VPN $TAG"
 
-      - name: Build debug APK (fallback)
-        if: failure()
+      - name: Write release notes
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          sed -e "s|@TAG@|${TAG}|g" -e "s|@SHA@|${GITHUB_SHA}|g" \
+            .github/release-notes.md > "$RUNNER_TEMP/notes.md"
+          head -5 "$RUNNER_TEMP/notes.md"
 
-      - name: Upload release APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test1-release-apk
-          path: app/build/outputs/apk/release/*.apk
-
-      - name: Upload debug APK
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test1-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+      - name: Publish APKs to GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" apk/*.apk --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$TAG" apk/*.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Mobix VPN $TAG" \
+              --notes-file "$RUNNER_TEMP/notes.md" \
+              --latest
+          fi

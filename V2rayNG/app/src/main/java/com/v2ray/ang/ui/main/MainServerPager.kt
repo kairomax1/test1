@@ -139,7 +139,8 @@ fun GroupPagerPage(
             onMoveServer = { fromIndex, toIndex ->
                 mainViewModel.moveServer(groupId, fromIndex, toIndex)
             },
-            contentPadding = listPadding
+            contentPadding = listPadding,
+            showEmptyState = searchQuery.isEmpty()
         )
         if (usageInfo != null) {
             SubscriptionInfoCard(
@@ -176,8 +177,14 @@ private fun ServerListPage(
     actions: ServerRowActions,
     onLocateHandled: () -> Unit,
     onMoveServer: (Int, Int) -> Unit,
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    showEmptyState: Boolean = false
 ) {
+    if (rows.isEmpty() && showEmptyState) {
+        MainEmptyState(modifier = Modifier.padding(contentPadding))
+        return
+    }
+
     if (doubleColumnDisplay) {
         val gridState = remember(groupId) {
             lazyGridStates.getOrPut(groupId) { LazyGridState() }
