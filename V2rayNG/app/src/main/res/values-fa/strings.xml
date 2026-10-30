@@ -27,6 +27,8 @@
     <string name="toast_services_failure">شروع سرویس با شکست مواجه شد</string>
 
     <!--ServerActivity-->
+    <string name="empty_state_title">هنوز کانفیگی اضافه نشده</string>
+    <string name="empty_state_hint">برای شروع دکمه‌ی + را بزنید تا کانفیگ اضافه کنید، لینک اشتراک بچسبانید یا کد QR را اسکن کنید.</string>
     <string name="title_server">فایل کانفیگ</string>
     <string name="menu_item_add_config">افزودن کانفیگ</string>
     <string name="menu_item_save_config">ذخیره کانفیگ</string>

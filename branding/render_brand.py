@@ -195,6 +195,9 @@ if __name__ == "__main__":
         fg = size * 108 // 48
         save(draw_mark(fg, tile=False, safe=0.62), out, "ic_launcher_foreground.png")
 
+        # Plain (non-adaptive) brand tile used inside the app UI (navigation drawer).
+        save(draw_mark(size * 2), os.path.join(RES, f"drawable-{density}"), "ic_brand_logo.png")
+
         stat = max(24, size // 2)
         save(shield_only(stat, WHITE), os.path.join(RES, f"drawable-{density}"), "ic_stat_name.png")
         save(shield_only(stat, (0, 0, 0)), os.path.join(RES, f"drawable-{density}"), "ic_stat_name_black.png")

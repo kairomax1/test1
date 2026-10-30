@@ -27,6 +27,8 @@
     <string name="toast_services_failure">Failed to start service</string>
 
     <!--ServerActivity-->
+    <string name="empty_state_title">No configuration yet</string>
+    <string name="empty_state_hint">Tap + to add a config, paste a subscription link or scan a QR code to get started.</string>
     <string name="title_server">Config</string>
     <string name="menu_item_add_config">Add config</string>
     <string name="menu_item_save_config">Save config</string>
