@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6D4AFF"/>
+      <stop offset="55%" stop-color="#8B5CFF"/>
+      <stop offset="100%" stop-color="#19D9EC"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="60%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="120" fill="url(#bg)"/>
+  <rect x="0" y="0" width="512" height="512" rx="120" fill="url(#glow)"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="
+    M256 104
+    L392 154
+    V268
+    C392 348 332 404 256 432
+    C180 404 120 348 120 268
+    V154
+    Z
+    M274 192 L182 296 H248 L232 372 L330 260 H262 Z"/>
+</svg>
